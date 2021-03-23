@@ -18,6 +18,12 @@ public class Role {
     private Long id;
     private String authority;
 
+    public static Role of(Long id) {
+        Role role = new Role();
+        role.id = id;
+        return role;
+    }
+
     public static Role of(Long id, String authority) {
         Role role = new Role();
         role.id = id;

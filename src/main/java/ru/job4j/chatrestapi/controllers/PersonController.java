@@ -1,11 +1,5 @@
 package ru.job4j.chatrestapi.controllers;
 
-import ru.job4j.chatrestapi.domain.Message;
-import ru.job4j.chatrestapi.domain.Person;
-import ru.job4j.chatrestapi.repository.MessageRepository;
-import ru.job4j.chatrestapi.repository.PersonRepository;
-import ru.job4j.chatrestapi.repository.RoleRepository;
-import ru.job4j.chatrestapi.repository.RoomRepository;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,12 +10,10 @@ import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
+import ru.job4j.chatrestapi.domain.Person;
+import ru.job4j.chatrestapi.services.PersonService;
 
-import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
-import java.util.stream.Collectors;
-import java.util.stream.StreamSupport;
 
 /**
  * @author Roman Rusanov
@@ -32,31 +24,20 @@ import java.util.stream.StreamSupport;
 @RequestMapping("/person")
 public class PersonController {
 
-    private final PersonRepository personRepository;
-    private final RoleRepository roleRepository;
-    private final RoomRepository roomRepository;
-    private final MessageRepository messageRepository;
+    private final PersonService personService;
 
-    public PersonController(PersonRepository personRepository,
-                            RoleRepository roleRepository,
-                            RoomRepository roomRepository,
-                            MessageRepository messageRepository) {
-        this.personRepository = personRepository;
-        this.roleRepository = roleRepository;
-        this.roomRepository = roomRepository;
-        this.messageRepository = messageRepository;
+    public PersonController(PersonService personService) {
+        this.personService = personService;
     }
 
     @GetMapping("/")
     public List<Person> findAll() {
-        return StreamSupport.stream(
-                this.personRepository.findAll().spliterator(), false
-        ).collect(Collectors.toList());
+        return this.personService.getAllPersons();
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<Person> findById(@PathVariable Long id) {
-        var person = this.personRepository.findById(id);
+        var person = this.personService.getPersonById(id);
         return new ResponseEntity<Person>(
                 person.orElse(new Person()),
                 person.isPresent() ? HttpStatus.OK : HttpStatus.NOT_FOUND
@@ -65,13 +46,9 @@ public class PersonController {
 
     @PostMapping("/")
     public ResponseEntity<Person> create(@RequestBody Person person) {
-        Person response;
-        if (this.personRepository.getPersonByUsername(person.getUsername()) == null) {
-            person.getRoles().forEach(this.roleRepository::save);
-            person.getRooms().forEach(this.roomRepository::save);
-            response = this.personRepository.save(person);
+        if (this.personService.isPersonExistByName(person)) {
             return new ResponseEntity<Person>(
-                    response,
+                    this.personService.createPersonAndOtherItPass(person),
                     HttpStatus.CREATED
             );
         } else {
@@ -83,29 +60,8 @@ public class PersonController {
 
     @PutMapping("/")
     public ResponseEntity<Void> update(@RequestBody Person person) {
-        Optional<Person> personFromRepository = this.personRepository.findById(person.getId());
-        if (personFromRepository.isPresent()) {
-            person.getRoles().forEach((role) -> {
-                if (!personFromRepository.get().getRoles().contains(role)) {
-                    this.roleRepository.save(role);
-                    personFromRepository.get().addRole(role);
-                }
-            });
-            person.getRooms().forEach((room) -> {
-                if (!personFromRepository.get().getRooms().contains(room)) {
-                    this.roomRepository.save(room);
-                    personFromRepository.get().addRoom(room);
-                }
-            });
-            person.getMessages().forEach((message) -> {
-                if (!personFromRepository.get().getMessages().contains(message)) {
-                    this.messageRepository.save(message);
-                    personFromRepository.get().addMessage(message);
-                }
-            });
-            personFromRepository.get().setUsername(person.getUsername());
-            personFromRepository.get().setPassword(person.getPassword());
-            this.personRepository.save(personFromRepository.get());
+        if (this.personService.isPersonExist(person)) {
+            this.personService.updatePersonAndOtherItPass(person);
             return ResponseEntity.ok().build();
         } else {
             return new ResponseEntity<Void>(
@@ -116,21 +72,9 @@ public class PersonController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        Person person = new Person();
-        person.setId(id);
-        Optional<Person> personFromRepository = this.personRepository.findById(person.getId());
-        if (personFromRepository.isPresent()) {
-            personFromRepository.get().removeAllRoles();
-            personFromRepository.get().getRooms().forEach((room -> {
-                room.removeAllMessages();
-                this.roomRepository.save(room);
-            }));
-            personFromRepository.get().removeAllRooms();
-            List<Message> messagesToDelete = new ArrayList<>(personFromRepository.get().getMessages());
-            personFromRepository.get().removeAllMessage();
-            this.personRepository.save(personFromRepository.get());
-            this.messageRepository.deleteAll(messagesToDelete);
-            this.personRepository.delete(person);
+        Person person = Person.of(id);
+        if (this.personService.isPersonExist(person)) {
+            this.personService.deletePersonAndItMsgAndRemoveItFromRooms(person);
             return ResponseEntity.ok().build();
         } else {
             return new ResponseEntity<Void>(
@@ -138,5 +82,4 @@ public class PersonController {
             );
         }
     }
-
 }

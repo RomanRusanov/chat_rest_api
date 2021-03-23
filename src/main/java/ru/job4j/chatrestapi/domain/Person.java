@@ -41,6 +41,12 @@ public class Person {
             inverseJoinColumns = {@JoinColumn(name = "room_id")})
     private List<Room> rooms = new ArrayList<>();
 
+    public static Person of(Long id) {
+        Person person = new Person();
+        person.id = id;
+        return person;
+    }
+
     public static Person of(Long id, String username, String password) {
         Person person = new Person();
         person.id = id;
@@ -73,6 +79,10 @@ public class Person {
 
     public void addRole(Role role) {
         this.roles.add(role);
+    }
+
+    public void removeRole(Role role) {
+        this.roles.remove(role);
     }
 
     public void removeAllRoles() {

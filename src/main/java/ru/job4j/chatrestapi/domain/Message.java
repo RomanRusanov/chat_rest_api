@@ -24,6 +24,12 @@ public class Message {
     @Column(name = "room_id")
     private Long roomId;
 
+    public static Message of(Long id) {
+        Message message = new Message();
+        message.id = id;
+        return message;
+    }
+
     public static Message of(Long id, String description, Long personId, Long roomId) {
         Message message = new Message();
         message.id = id;
