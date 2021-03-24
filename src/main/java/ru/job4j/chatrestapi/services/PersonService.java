@@ -119,4 +119,8 @@ public class PersonService {
     public List<Person> getAllPersonWithRoleId(Long id) {
         return this.personRepository.getAllByRoles(Role.of(id));
     }
+
+    public Person findPersonByUsername(String name) {
+        return this.personRepository.getPersonByUsername(name);
+    }
 }
