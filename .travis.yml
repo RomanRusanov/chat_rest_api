@@ -3,11 +3,15 @@ language: java
 # используем режим обычного пользователя для сборки проекта.
 sudo: false
 install: true
+
+services:
+  postgresql
 # Изменяет текущую временную зону.
 before_install:
   - chmod +x mvnw
   - export TZ=Europe/Moscow
   - date
+  - psql -c 'create database chat;' -U postgres
 # Отправлять уведомление на почту youremail@smtp.ru (Изменить на свою) если сборка упала
 notifications:
   email:
