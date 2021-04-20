@@ -2,8 +2,10 @@
 language: java
 # используем режим обычного пользователя для сборки проекта.
 sudo: false
+install: true
 # Изменяет текущую временную зону.
 before_install:
+  - chmod +x mvnw
   - export TZ=Europe/Moscow
   - date
 # Отправлять уведомление на почту youremail@smtp.ru (Изменить на свою) если сборка упала
