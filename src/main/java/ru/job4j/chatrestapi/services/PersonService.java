@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import ru.job4j.chatrestapi.domain.Message;
 import ru.job4j.chatrestapi.domain.Person;
 import ru.job4j.chatrestapi.domain.Role;
+import ru.job4j.chatrestapi.domain.Room;
 import ru.job4j.chatrestapi.repository.MessageRepository;
 import ru.job4j.chatrestapi.repository.PersonRepository;
 import ru.job4j.chatrestapi.repository.RoleRepository;
@@ -123,4 +124,14 @@ public class PersonService {
     public Person findPersonByUsername(String name) {
         return this.personRepository.getPersonByUsername(name);
     }
+
+    public void removeRoom(Room room) {
+        this.getAllPersons().stream()
+                .filter(person -> person.getRooms().contains(room))
+                .forEach(person -> {
+                    person.removeRoom(room);
+                    this.personRepository.save(person);
+                });
+    }
+
 }

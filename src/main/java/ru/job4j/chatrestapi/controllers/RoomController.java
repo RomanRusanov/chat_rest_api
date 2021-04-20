@@ -11,9 +11,11 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.job4j.chatrestapi.domain.Room;
+import ru.job4j.chatrestapi.services.PersonService;
 import ru.job4j.chatrestapi.services.RoomService;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * @author Roman Rusanov
@@ -25,9 +27,11 @@ import java.util.List;
 public class RoomController {
     
     private final RoomService roomService;
+    private final PersonService personService;
 
-    public RoomController(RoomService roomService) {
+    public RoomController(RoomService roomService, PersonService personService) {
         this.roomService = roomService;
+        this.personService = personService;
     }
 
     @GetMapping("/")
@@ -65,7 +69,9 @@ public class RoomController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> delete(@PathVariable Long id) {
-        if (this.roomService.isRoomPresentById(id)) {
+        Optional<Room> roomToDelete = this.roomService.getRoomById(id);
+        if (roomToDelete.isPresent()) {
+            this.personService.removeRoom(roomToDelete.get());
             this.roomService.deleteRoomAndMessageInItAndPersonMessage(id);
             return ResponseEntity.ok().build();
         }

@@ -11,9 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 import ru.job4j.chatrestapi.domain.Message;
-import ru.job4j.chatrestapi.repository.MessageRepository;
-import ru.job4j.chatrestapi.repository.PersonRepository;
-import ru.job4j.chatrestapi.repository.RoomRepository;
 import ru.job4j.chatrestapi.services.MessageService;
 
 import java.util.List;
